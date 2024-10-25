@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  let extractedData = { question: "", answer: "" };  // Variable to store extracted question and answer
+  let extractedData = { question: "", answer: "", program_type: "" };  // Variable to store extracted question, answer, and program type
 
   function autoExtractText() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -9,7 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }, (results) => {
         if (results && results[0] && results[0].result) {
           extractedData = results[0].result;  // Store the extracted data
-          document.getElementById("greeting").innerText = `Question: ${extractedData.question}\nAnswer: ${extractedData.answer}`;
+          document.getElementById("greeting").innerText = 
+            `Question: ${extractedData.question}\nAnswer: ${extractedData.answer}\nProgram Type: ${extractedData.program_type}`;
           
           // Send the extracted data to the Python server
           sendToFastAPIServer(extractedData);
@@ -24,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
   autoExtractText();
 
   // Set up an interval to extract text every 5 seconds
-  setInterval(autoExtractText, 5000);
+  setInterval(autoExtractText, 2000);
 
   function sendToFastAPIServer(data) {
     // Send the extracted data to the FastAPI server
@@ -45,11 +46,13 @@ document.addEventListener("DOMContentLoaded", () => {
 function extractDivContent() {
   const element = document.querySelector('.view-lines.monaco-mouse-cursor-text');
   const element_q = document.querySelector('.elfjS');
+  const pythonButton = document.querySelector('.rounded.items-center.whitespace-nowrap.focus\\:outline-none.inline-flex.bg-transparent.dark\\:bg-dark-transparent.text-text-secondary.dark\\:text-text-secondary.active\\:bg-transparent.dark\\:active\\:bg-dark-transparent.hover\\:bg-fill-secondary.dark\\:hover\\:bg-fill-secondary.px-1\\.5.py-0\\.5.text-sm.font-normal.group');
 
-  // Create an object to hold the extracted question and answer
+  // Create an object to hold the extracted question, answer, and program type
   const extractedData = {
     question: "",
-    answer: ""
+    answer: "",
+    program_type: ""
   };
 
   // Check if the question element exists and assign its text
@@ -66,6 +69,13 @@ function extractDivContent() {
     extractedData.answer = "Answer element not found.";
   }
 
-  // Return the object containing both question and answer
+  // Check if the pythonButton exists and extract its text content
+  if (pythonButton) {
+    extractedData.program_type = pythonButton.textContent.trim();  // Use textContent to capture nested text as well
+  } else {
+    extractedData.program_type = "Program type element not found.";
+  }
+
+  // Return the object containing question, answer, and program type
   return extractedData;
 }
