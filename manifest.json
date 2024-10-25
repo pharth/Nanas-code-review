@@ -1,11 +1,13 @@
 {
-    "manifest_version": 3,
-    "name": "Hello Extension",
-    "version": "1.0",
-    "description": "A simple extension that says Hello",
-    "action": {
-      "default_popup": "popup.html"
-    },
-    "permissions": []
+  "manifest_version": 3,
+  "name": "DOM Extraction Example",
+  "version": "1.0",
+  "description": "A Chrome extension to extract an element from a webpage and show it in a popup.",
+  "permissions": [
+    "activeTab", 
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
   }
-  
+}
