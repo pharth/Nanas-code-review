@@ -1,19 +1,19 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Function to automatically extract text every few seconds
+  let extractedText = "";  // Variable to store the extracted text
+
   function autoExtractText() {
-    // Get the active tab in the current window
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      // Use the chrome.scripting API to execute a function on the active tab
       chrome.scripting.executeScript({
         target: { tabId: tabs[0].id },
-        function: extractDivContent  // Function to run in the context of the webpage
+        function: extractDivContent
       }, (results) => {
-        // Check if results were returned
         if (results && results[0] && results[0].result) {
-          // Display the extracted text in the popup
-          document.getElementById("greeting").innerText = results[0].result;
+          extractedText = results[0].result;  // Store the extracted text in the variable
+          document.getElementById("greeting").innerText = extractedText;
+          
+          // Send the extracted text to the Python server
+          sendToFastAPIServer(extractedText);
         } else {
-          // If no result, show a fallback message
           document.getElementById("greeting").innerText = "Could not extract content.";
         }
       });
@@ -24,17 +24,27 @@ document.addEventListener("DOMContentLoaded", () => {
   autoExtractText();
 
   // Set up an interval to extract text every 5 seconds
-  setInterval(autoExtractText, 1000);  // 5000 ms = 5 seconds
+  setInterval(autoExtractText, 1000);
+
+  function sendToFastAPIServer(text) {
+    // Send the extracted text to the FastAPI server
+    fetch('http://localhost:8080/receive_text', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ text: text })
+    })
+    .then(response => response.json())
+    .then(data => console.log("Response from server:", data))
+    .catch(error => console.error("Error sending data to server:", error));
+  }
 });
 
 // This function runs in the context of the webpage
 function extractDivContent() {
-  // Select the div with class "view-lines monaco-mouse-cursor-text"
   const element = document.querySelector('.view-lines.monaco-mouse-cursor-text');
-
-  // Check if the element exists
   if (element) {
-    // Get the text content of the element (this will extract all text inside the <div>)
     return element.innerText.trim();
   } else {
     return "Element not found.";
