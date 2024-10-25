@@ -1,9 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Get the button by ID
-  const button = document.getElementById("extractButton");
-
-  // Add a click event listener to the button
-  button.addEventListener("click", () => {
+  // Function to automatically extract text every few seconds
+  function autoExtractText() {
     // Get the active tab in the current window
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       // Use the chrome.scripting API to execute a function on the active tab
@@ -21,7 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
-  });
+  }
+
+  // Call the function immediately on page load
+  autoExtractText();
+
+  // Set up an interval to extract text every 5 seconds
+  setInterval(autoExtractText, 1000);  // 5000 ms = 5 seconds
 });
 
 // This function runs in the context of the webpage
