@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  let extractedText = "";  // Variable to store the extracted text
+  let extractedData = { question: "", answer: "" };  // Variable to store extracted question and answer
 
   function autoExtractText() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -8,11 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
         function: extractDivContent
       }, (results) => {
         if (results && results[0] && results[0].result) {
-          extractedText = results[0].result;  // Store the extracted text in the variable
-          document.getElementById("greeting").innerText = extractedText;
+          extractedData = results[0].result;  // Store the extracted data
+          document.getElementById("greeting").innerText = `Question: ${extractedData.question}\nAnswer: ${extractedData.answer}`;
           
-          // Send the extracted text to the Python server
-          sendToFastAPIServer(extractedText);
+          // Send the extracted data to the Python server
+          sendToFastAPIServer(extractedData);
         } else {
           document.getElementById("greeting").innerText = "Could not extract content.";
         }
@@ -24,16 +24,16 @@ document.addEventListener("DOMContentLoaded", () => {
   autoExtractText();
 
   // Set up an interval to extract text every 5 seconds
-  setInterval(autoExtractText, 1000);
+  setInterval(autoExtractText, 5000);
 
-  function sendToFastAPIServer(text) {
-    // Send the extracted text to the FastAPI server
+  function sendToFastAPIServer(data) {
+    // Send the extracted data to the FastAPI server
     fetch('http://localhost:8080/receive_text', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ text: text })
+      body: JSON.stringify(data)  // Send the object directly
     })
     .then(response => response.json())
     .then(data => console.log("Response from server:", data))
@@ -44,9 +44,28 @@ document.addEventListener("DOMContentLoaded", () => {
 // This function runs in the context of the webpage
 function extractDivContent() {
   const element = document.querySelector('.view-lines.monaco-mouse-cursor-text');
-  if (element) {
-    return element.innerText.trim();
+  const element_q = document.querySelector('.elfjS');
+
+  // Create an object to hold the extracted question and answer
+  const extractedData = {
+    question: "",
+    answer: ""
+  };
+
+  // Check if the question element exists and assign its text
+  if (element_q) {
+    extractedData.question = element_q.innerText.trim();
   } else {
-    return "Element not found.";
+    extractedData.question = "Question element not found.";
   }
+
+  // Check if the answer element exists and assign its text
+  if (element) {
+    extractedData.answer = element.innerText.trim();
+  } else {
+    extractedData.answer = "Answer element not found.";
+  }
+
+  // Return the object containing both question and answer
+  return extractedData;
 }
