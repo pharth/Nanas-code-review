@@ -1,11 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "DOM Extraction Example",
+  "name": "Fixy 2",
   "version": "1.0",
-  "description": "A Chrome extension to extract an element from a webpage and show it in a popup.",
-  "permissions": [
-    "activeTab", 
-    "scripting"
+  "description": "Injects an image carousel overlay on webpages and provides a popup for extracted content.",
+  "permissions": ["activeTab", "scripting"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["carousel_inject.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "image0.png",
+        "image1.png",
+        "image2.png",
+        "image3.png",
+        "image4.png",
+        "image5.png"
+      ],
+      "matches": ["<all_urls>"]
+    }
   ],
   "action": {
     "default_popup": "popup.html"
