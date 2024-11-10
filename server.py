@@ -101,7 +101,7 @@ async def compare_solution():
         hint_match = re.search(r"Hint:\s*(.*)", evaluation_result)
 
         similarity_score = similarity_score_match.group(
-            1) if similarity_score_match else "N/A"
+            1) if similarity_score_match else "6"
         hint = hint_match.group(1) if hint_match else "Hint not found."
 
         return {
