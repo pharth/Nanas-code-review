@@ -28,14 +28,16 @@ Step 1: Load the Extension in Chrome
 Step 2: Add Your Gemini API Key
 
 The extension requires a Gemini API key for certain features to work. You will need to insert your Gemini API key in the extension’s configuration.
-	1.	Open the project folder and locate popup.js.
-	2.	Add your Gemini API key to the appropriate location in popup.js where the API call is configured.
-	3.	Save the file after making this change.
 
-Step 3: Start the Local Server
+	1.	Open the project folder and locate popup.js.  
+	2.	Add your Gemini API key to the appropriate location in popup.js where the API call is configured. \n
+	3.	Save the file after making this change. \n
 
-The extension relies on a local server for processing the extracted data and calculating the similarity score.
-	1.	Make sure you have the server code ready (not provided in this repo) and that it listens on http://localhost:8080.
+Step 3: Start the Local Server 
+
+The extension relies on a local server for processing the extracted data and calculating the similarity score.  
+
+	1.	Make sure you have the server code ready (not provided in this repo) and that it listens on http://localhost:8080.  
 	2.	Start the server.
 
  Step 4: Use the Extension
@@ -43,3 +45,6 @@ The extension relies on a local server for processing the extracted data and cal
 	1.	Go to any supported webpage (e.g., LeetCode) where the extension will run.
 	2.	The extension will automatically extract content and send it to the local server for processing.
 	3.	Based on the similarity score returned, an image will be displayed on the page. You can toggle the image visibility using the Toggle Image button.
+
+
+ 
