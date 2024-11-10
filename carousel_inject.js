@@ -1,80 +1,123 @@
-// Listen for messages from popup.js
-chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
-      if (request.similarityScore !== undefined) {
-        console.log("Received similarity score:", request.similarityScore);
-        // Display the image based on the similarity score
-        displayImageBasedOnScore(request.similarityScore);
-      }
-      sendResponse({ status: "Similarity score received" });
+(function() {
+    // Check if the script has already run
+    if (window.hasFixyRun) {
+        console.log("Fixy content script has already run, skipping initialization.");
+        return;
     }
-  );
-  
-  function displayImageBasedOnScore(similarityScore) {
-    // Map similarity scores to image indices
-    let imageIndex = 0;
-  
-    // Assuming similarityScore is between 0 and 100
-    // Adjust the ranges and image indices as needed
-    if (similarityScore == 0) {
-      imageIndex = 0; // image0.png
-    } else if (similarityScore == 1) {
-      imageIndex = 1; // image1.png
-    } else if (similarityScore == 2) {
-      imageIndex = 2; // image2.png
-    } else if (similarityScore == 3) {
-      imageIndex = 3; // image3.png
-    } else if (similarityScore == 4) {
-      imageIndex = 4; // image4.png
-    } else {
-      imageIndex = 5; // image5.png (default or error image)
+    window.hasFixyRun = true;
+    console.log("Initializing Fixy content script.");
+
+    // Function for webpage data extraction
+    function extractDivContent() {
+        const element = document.querySelector('.view-lines.monaco-mouse-cursor-text');
+        const element_q = document.querySelector('.elfjS');
+        const pythonButton = document.querySelector(
+            'button.rounded.items-center.whitespace-nowrap.focus\\:outline-none.inline-flex.bg-transparent.dark\\:bg-dark-transparent.text-text-secondary.dark\\:text-text-secondary.active\\:bg-transparent.dark\\:active\\:bg-dark-transparent.hover\\:bg-fill-secondary.dark\\:hover\\:bg-fill-secondary.px-1\\.5.py-0\\.5.text-sm.font-normal.group'
+        );
+
+        return {
+            question: element_q ? element_q.innerText.trim() : "Question element not found.",
+            answer: element ? element.innerText.trim() : "Answer element not found.",
+            program_type: pythonButton ? pythonButton.textContent.trim() : "Program type element not found."
+        };
     }
-  
-    // Create image container if it doesn't exist
-    let imageContainer = document.getElementById("imageContainer");
-    if (!imageContainer) {
-      imageContainer = document.createElement("div");
-      imageContainer.id = "imageContainer";
-      imageContainer.style.position = "fixed";
-      imageContainer.style.top = "10px";
-      imageContainer.style.right = "10px";
-      imageContainer.style.zIndex = "9999";
-      imageContainer.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
-      imageContainer.style.padding = "10px";
-      imageContainer.style.borderRadius = "8px";
-      document.body.appendChild(imageContainer);
-  
-      // Create image element
-      const resultImage = document.createElement("img");
-      resultImage.id = "resultImage";
-      resultImage.style.width = "300px";
-      resultImage.style.height = "200px";
-      resultImage.style.borderRadius = "8px";
-      resultImage.style.display = "block";
-      resultImage.style.marginBottom = "10px";
-      imageContainer.appendChild(resultImage);
-  
-      // Create toggle button
-      const toggleButton = document.createElement("button");
-      toggleButton.id = "imageToggleButton";
-      toggleButton.innerText = "Toggle Image";
-      toggleButton.style.padding = "10px";
-      toggleButton.style.borderRadius = "5px";
-      toggleButton.style.cursor = "pointer";
-      toggleButton.style.marginBottom = "10px";
-      imageContainer.appendChild(toggleButton);
-  
-      // Toggle button click handler
-      let imageVisible = true;
-      toggleButton.addEventListener("click", () => {
-        imageVisible = !imageVisible;
-        resultImage.style.display = imageVisible ? "block" : "none";
-      });
+
+    // Function to extract content and send to background script
+    function autoExtractText() {
+        const extractedData = extractDivContent();
+
+        if (
+            extractedData &&
+            extractedData.question !== "Question element not found." &&
+            extractedData.answer !== "Answer element not found." &&
+            extractedData.program_type !== "Program type element not found."
+        ) {
+            console.log("Extracted Data:", extractedData);
+
+            // Log the time when the message is sent
+            console.log("Sending data to background script at:", new Date().toLocaleTimeString());
+
+            // Try to send extracted data to the background script
+            chrome.runtime.sendMessage({ action: 'processData', data: extractedData }, response => {
+                if (chrome.runtime.lastError) {
+                    console.error("Error sending message:", chrome.runtime.lastError.message);
+                } else {
+                    console.log("Message sent successfully:", response);
+                }
+            });
+        } else {
+            console.log("Incomplete data extracted, not sending to background script.");
+        }
     }
-  
-    // Update the image source based on the similarity score
-    const resultImage = document.getElementById("resultImage");
-    const imagePath = chrome.runtime.getURL(`image${imageIndex}.png`);
-    console.log(`Displaying image: ${imagePath}`);
-    resultImage.src = imagePath;
-  }
+
+    // Listener for messages from background script
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.similarityScore !== undefined) {
+            console.log("Received similarity score:", request.similarityScore);
+            // Display the image based on the similarity score
+            displayImageBasedOnScore(request.similarityScore);
+        } else {
+            console.log("Received message without similarityScore:", request);
+        }
+    });
+
+    // Image display logic
+    function displayImageBasedOnScore(similarityScore) {
+        console.log("Raw similarityScore received:", similarityScore);
+
+        // Handle undefined or null similarityScore
+        if (similarityScore === undefined || similarityScore === null || similarityScore === "") {
+            similarityScore = "N/A";
+        }
+
+        let imageIndex = parseInt(similarityScore, 10);
+
+        console.log("Parsed imageIndex:", imageIndex);
+
+        if (!isNaN(imageIndex) && imageIndex >= 1 && imageIndex <= 5) {
+            // Valid imageIndex between 1 and 5, do nothing
+            console.log("Valid imageIndex:", imageIndex);
+        } else {
+            imageIndex = 6; // Use image6.png for invalid similarityScore
+            console.log("Invalid similarityScore, defaulting imageIndex to 6");
+        }
+
+        // Create image container if it doesn't exist
+        let imageContainer = document.getElementById("imageContainer");
+        if (!imageContainer) {
+            imageContainer = document.createElement("div");
+            imageContainer.id = "imageContainer";
+            document.body.appendChild(imageContainer);
+
+            // Create toggle button
+            const toggleButton = document.createElement("button");
+            toggleButton.id = "imageToggleButton";
+            toggleButton.innerText = "Toggle Image";
+            imageContainer.appendChild(toggleButton);
+
+            // Create image element
+            const resultImage = document.createElement("img");
+            resultImage.id = "resultImage";
+            imageContainer.appendChild(resultImage);
+
+            // Toggle button click handler
+            let imageVisible = true;
+            toggleButton.addEventListener("click", () => {
+                imageVisible = !imageVisible;
+                resultImage.style.visibility = imageVisible ? "visible" : "hidden"; // Toggle visibility
+            });
+        }
+
+        // Update the image source based on the imageIndex
+        const resultImage = document.getElementById("resultImage");
+        const imagePath = chrome.runtime.getURL(`image${imageIndex}.png`);
+        console.log(`chrome.runtime.getURL('image${imageIndex}.png') returned:`, imagePath);
+        resultImage.src = imagePath;
+    }
+
+    // Start the periodic data extraction
+    setInterval(autoExtractText, 4000);
+    // Run it immediately once
+    autoExtractText();
+
+})();
