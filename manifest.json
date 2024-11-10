@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Nana's Code Review",
   "version": "1.0",
-  "description": "Injects an image overlay on webpages and provides a popup for extracted content.",
+  "description": "Our Dear Grandma helps us crack those insaneee DSA rounds with some small amounts of motivational push",
   "permissions": ["activeTab", "scripting"],
   "host_permissions": ["http://localhost/*"],
   "background": {
